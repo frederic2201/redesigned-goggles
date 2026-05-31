@@ -204,23 +204,32 @@ function sendGCByEmail(id) {
   if (!gc) return;
   const amount = parseFloat(gc.initial_value).toFixed(2);
   const expiry = gc.expires_at ? new Date(gc.expires_at).toLocaleDateString('fr-FR') : null;
-  const previewEl = document.getElementById('send-gc-preview');
-  if (previewEl) {
+
+  const buildPreview = (senderName) => {
+    const previewEl = document.getElementById('send-gc-preview');
+    if (!previewEl) return;
     previewEl.innerHTML =
       '<div style="background:var(--noir-d);border:2px solid var(--or);border-radius:10px;padding:18px;text-align:center;">'
       + '<div style="font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--or-d);margin-bottom:6px;">Carte cadeau</div>'
       + '<div style="font-family:Cormorant Garamond,serif;font-size:2rem;color:var(--or);">' + amount + '€</div>'
       + '<div style="font-family:JetBrains Mono,monospace;font-size:.85rem;color:var(--blanc);margin:8px 0;padding:6px 14px;background:rgba(255,255,255,.05);border-radius:5px;display:inline-block;">' + gc.code + '</div>'
-      + (gc.recipient_name ? '<div style="font-size:.72rem;color:var(--blanc-d);margin-top:6px;">Pour : <strong style="color:var(--blanc);">' + gc.recipient_name + '</strong></div>' : '')
+      + (senderName ? '<div style="font-size:.72rem;color:var(--blanc-d);margin-top:6px;">De la part de : <strong style="color:var(--or);">' + senderName + '</strong></div>' : '')
+      + (gc.recipient_name ? '<div style="font-size:.72rem;color:var(--blanc-d);margin-top:4px;">Pour : <strong style="color:var(--blanc);">' + gc.recipient_name + '</strong></div>' : '')
       + (expiry ? '<div style="font-size:.62rem;color:var(--blanc-d);margin-top:4px;">Expire le ' + expiry + '</div>' : '')
       + (gc.message ? '<div style="font-size:.7rem;font-style:italic;color:var(--blanc-d);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">"' + gc.message + '"</div>' : '')
       + '</div>'
       + (!gc.purchaser_email
         ? '<div style="margin-top:10px;padding:8px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:6px;font-size:.7rem;color:#E74C3C;">⚠️ Aucun email renseigné — modifie la carte pour en ajouter un.</div>'
         : '<div style="margin-top:8px;font-size:.68rem;color:var(--blanc-d);">Envoi vers : <strong style="color:var(--blanc);">' + gc.purchaser_email + '</strong></div>');
-  }
+  };
+
   const purchaserEl = document.getElementById('send-gc-purchaser');
-  if (purchaserEl) purchaserEl.value = gc.purchaser_name || '';
+  const initialSender = gc.purchaser_name || '';
+  if (purchaserEl) {
+    purchaserEl.value = initialSender;
+    purchaserEl.oninput = () => buildPreview(purchaserEl.value.trim());
+  }
+  buildPreview(initialSender);
   openModal('send-gc');
 }
 
