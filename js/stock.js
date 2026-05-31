@@ -227,7 +227,10 @@ function sendGCByEmail(id) {
   const initialSender = gc.purchaser_name || '';
   if (purchaserEl) {
     purchaserEl.value = initialSender;
+    purchaserEl.placeholder = 'Prénom ou nom de la personne qui offre';
     purchaserEl.oninput = () => buildPreview(purchaserEl.value.trim());
+    const labelEl = purchaserEl.previousElementSibling;
+    if (labelEl && labelEl.tagName === 'LABEL') labelEl.textContent = 'De la part de (expéditeur)';
   }
   buildPreview(initialSender);
   openModal('send-gc');
