@@ -1,0 +1,29 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/**'
+      - 'src/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy JS files to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 168.231.81.67
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /var/www/cizo/public/js
+            curl -sf -o stock.js https://raw.githubusercontent.com/frederic2201/redesigned-goggles/main/js/stock.js
+            curl -sf -o nav.js https://raw.githubusercontent.com/frederic2201/redesigned-goggles/main/js/nav.js
+            curl -sf -o api.js https://raw.githubusercontent.com/frederic2201/redesigned-goggles/main/js/api.js
+            pm2 restart cizo
+            echo "JS deployed OK"
