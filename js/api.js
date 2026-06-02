@@ -60,3 +60,4 @@ function applyBranding(color, name) {
     if (color) document.documentElement.style.setProperty('--or', color);
   } catch(e) { console.warn('applyBranding:', e); }
 }
+// deploy test Tue Jun  2 20:12:04 UTC 2026
