@@ -1,0 +1,21 @@
+name: Query VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'Command to run on VPS'
+        required: true
+        type: string
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 168.231.81.67
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: ${{ inputs.command }}
