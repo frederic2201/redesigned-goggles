@@ -12,10 +12,44 @@ jobs:
   query:
     runs-on: ubuntu-latest
     steps:
-      - name: Run on VPS
+      - name: Run on VPS (attempt 1)
+        id: try1
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: 168.231.81.67
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: ${{ inputs.command }}
+          timeout: 30s
+
+      - name: Wait before retry
+        if: steps.try1.outcome == 'failure'
+        run: sleep 40
+
+      - name: Run on VPS (attempt 2)
+        id: try2
+        if: steps.try1.outcome == 'failure'
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: 168.231.81.67
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: ${{ inputs.command }}
+          timeout: 30s
+
+      - name: Wait before retry 2
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        run: sleep 60
+
+      - name: Run on VPS (attempt 3)
+        id: try3
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 168.231.81.67
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
           script: ${{ inputs.command }}
+          timeout: 30s
