@@ -1,1 +1,58 @@
-bmFtZTogUXVlcnkgVlBTCgpvbjoKICB3b3JrZmxvd19kaXNwYXRjaDoKICAgIGlucHV0czoKICAgICAgY29tbWFuZDoKICAgICAgICBkZXNjcmlwdGlvbjogJ0NvbW1hbmQgdG8gcnVuIG9uIFZQUycKICAgICAgICByZXF1aXJlZDogdHJ1ZQogICAgICAgIHR5cGU6IHN0cmluZwoKam9iczoKICBxdWVyeToKICAgIHJ1bnMtb246IHVidW50dS1sYXRlc3QKICAgIHN0ZXBzOgogICAgICAtIG5hbWU6IFJ1biBvbiBWUFMgKGF0dGVtcHQgMSkKICAgICAgICBpZDogdHJ5MQogICAgICAgIHVzZXM6IGFwcGxlYm95L3NzaC1hY3Rpb25AdjEuMC4zCiAgICAgICAgY29udGludWUtb24tZXJyb3I6IHRydWUKICAgICAgICB3aXRoOgogICAgICAgICAgaG9zdDogMTY4LjIzMS44MS42NwogICAgICAgICAgcG9ydDogMjIyMgogICAgICAgICAgdXNlcm5hbWU6IHJvb3QKICAgICAgICAgIHBhc3N3b3JkOiAke3sgc2VjcmV0cy5WUFNfUEFTU1dPUkQgfX0KICAgICAgICAgIHNjcmlwdDogJHt7IGlucHV0cy5jb21tYW5kIH19CiAgICAgICAgICB0aW1lb3V0OiAzMHMKCiAgICAgIC0gbmFtZTogV2FpdCBiZWZvcmUgcmV0cnkKICAgICAgICBpZjogc3RlcHMudHJ5MS5vdXRjb21lID09ICdmYWlsdXJlJwogICAgICAgIHJ1bjogc2xlZXAgNDAKCiAgICAgIC0gbmFtZTogUnVuIG9uIFZQUyAoYXR0ZW1wdCAyKQogICAgICAgIGlkOiB0cnkyCiAgICAgICAgaWY6IHN0ZXBzLnRyeTEub3V0Y29tZSA9PSAnZmFpbHVyZScKICAgICAgICB1c2VzOiBhcHBsZWJveS9zc2gtYWN0aW9uQHYxLjAuMwogICAgICAgIGNvbnRpbnVlLW9uLWVycm9yOiB0cnVlCiAgICAgICAgd2l0aDoKICAgICAgICAgIGhvc3Q6IDE2OC4yMzEuODEuNjcKICAgICAgICAgIHBvcnQ6IDIyMjIKICAgICAgICAgIHVzZXJuYW1lOiByb290CiAgICAgICAgICBwYXNzd29yZDogJHt7IHNlY3JldHMuVlBTX1BBU1NXT1JEIH19CiAgICAgICAgICBzY3JpcHQ6ICR7eyBpbnB1dHMuY29tbWFuZCB9fQogICAgICAgICAgdGltZW91dDogMzBzCgogICAgICAtIG5hbWU6IFdhaXQgYmVmb3JlIHJldHJ5IDIKICAgICAgICBpZjogc3RlcHMudHJ5MS5vdXRjb21lID09ICdmYWlsdXJlJyAmJiBzdGVwcy50cnkyLm91dGNvbWUgPT0gJ2ZhaWx1cmUnCiAgICAgICAgcnVuOiBzbGVlcCA2MAoKICAgICAgLSBuYW1lOiBSdW4gb24gVlBTIChhdHRlbXB0IDMpCiAgICAgICAgaWQ6IHRyeTMKICAgICAgICBpZjogc3RlcHMudHJ5MS5vdXRjb21lID09ICdmYWlsdXJlJyAmJiBzdGVwcy50cnkyLm91dGNvbWUgPT0gJ2ZhaWx1cmUnCiAgICAgICAgdXNlczogYXBwbGVib3kvc3NoLWFjdGlvbkB2MS4wLjMKICAgICAgICB3aXRoOgogICAgICAgICAgaG9zdDogMTY4LjIzMS44MS42NwogICAgICAgICAgcG9ydDogMjIyMgogICAgICAgICAgdXNlcm5hbWU6IHJvb3QKICAgICAgICAgIHBhc3N3b3JkOiAke3sgc2VjcmV0cy5WUFNfUEFTU1dPUkQgfX0KICAgICAgICAgIHNjcmlwdDogJHt7IGlucHV0cy5jb21tYW5kIH19CiAgICAgICAgICB0aW1lb3V0OiAzMHMK
+name: Query VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'Command to run on VPS'
+        required: true
+        type: string
+
+jobs:
+  query:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run on VPS (attempt 1)
+        id: try1
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: 168.231.81.67
+          port: 2222
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: ${{ inputs.command }}
+          timeout: 30s
+
+      - name: Wait before retry
+        if: steps.try1.outcome == 'failure'
+        run: sleep 40
+
+      - name: Run on VPS (attempt 2)
+        id: try2
+        if: steps.try1.outcome == 'failure'
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: 168.231.81.67
+          port: 2222
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: ${{ inputs.command }}
+          timeout: 30s
+
+      - name: Wait before retry 2
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        run: sleep 60
+
+      - name: Run on VPS (attempt 3)
+        id: try3
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 168.231.81.67
+          port: 2222
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: ${{ inputs.command }}
+          timeout: 30s
