@@ -7,67 +7,15 @@ on:
         description: 'Command to run on VPS'
         required: true
         type: string
-      use_ssh:
-        description: 'Use SSH instead of API (true/false)'
-        required: false
-        default: 'false'
-        type: string
 
 jobs:
   query:
     runs-on: ubuntu-latest
     steps:
-      - name: Run via HTTPS API
-        if: inputs.use_ssh != 'true'
+      - name: Run via API
         run: |
-          echo "Command: ${{ inputs.command }}"
-          curl -s -X POST https://cizopro.fr/api/admin/exec \
+          curl -s -X POST http://168.231.81.67:3000/api/admin/exec \
             -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{\"command\": $(echo '${{ inputs.command }}' | jq -Rs .)}" \
             --max-time 60
-
-      - name: Run on VPS via SSH (attempt 1)
-        id: try1
-        if: inputs.use_ssh == 'true'
-        uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
-        with:
-          host: 168.231.81.67
-          port: 2222
-          username: root
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: ${{ inputs.command }}
-          timeout: 30s
-
-      - name: Wait before retry
-        if: inputs.use_ssh == 'true' && steps.try1.outcome == 'failure'
-        run: sleep 40
-
-      - name: Run on VPS via SSH (attempt 2)
-        id: try2
-        if: inputs.use_ssh == 'true' && steps.try1.outcome == 'failure'
-        uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
-        with:
-          host: 168.231.81.67
-          port: 2222
-          username: root
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: ${{ inputs.command }}
-          timeout: 30s
-
-      - name: Wait before retry 2
-        if: inputs.use_ssh == 'true' && steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
-        run: sleep 60
-
-      - name: Run on VPS via SSH (attempt 3)
-        if: inputs.use_ssh == 'true' && steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 168.231.81.67
-          port: 2222
-          username: root
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: ${{ inputs.command }}
-          timeout: 30s
