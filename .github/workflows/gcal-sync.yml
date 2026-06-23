@@ -1,0 +1,15 @@
+name: GCal Sync VPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gcal-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger GCal sync
+        run: |
+          curl -s -X POST http://168.231.81.67:3000/api/admin/gcal-sync \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --max-time 60
