@@ -13,9 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run via API
+        env:
+          CMD: ${{ inputs.command }}
         run: |
           curl -s -X POST http://168.231.81.67:3000/api/admin/exec \
             -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "{\"command\": $(echo '${{ inputs.command }}' | jq -Rs .)}" \
+            -d "{\"command\": $(printf '%s' "$CMD" | jq -Rs .)}" \
             --max-time 60
