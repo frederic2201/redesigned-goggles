@@ -1,0 +1,14 @@
+name: Deploy Admin Routes
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and deploy admin.routes.js
+        run: |
+          curl -s -X POST http://168.231.81.67:3000/api/admin/exec \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"command": "curl -s https://raw.githubusercontent.com/frederic2201/redesigned-goggles/claude/wonderful-hamilton-8GBDb/vps-files/admin.routes.js -o /var/www/cizo/src/routes/admin.routes.js && pm2 restart cizo && echo DONE"}' \
+            --max-time 60
